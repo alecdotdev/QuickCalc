@@ -4,26 +4,21 @@ import androidx.compose.runtime.setValue
 import java.text.DecimalFormat
 
 class CalculatorState {
-
-
-    var expression by mutableStateOf("")
+    private var expression by mutableStateOf("")
     var display by mutableStateOf("")
 
     private val df = DecimalFormat("#.########")
 
     fun onInput(input: String) {
-        // Prevent multiple consecutive decimals
         if (input == "." && (expression.lastOrNull()?.isDigit() != true || lastNumberContainsDecimal())) {
             return
         }
 
-        // Append input and update the display
         expression += input
         updateDisplay()
     }
 
     fun onOperation(op: String) {
-        // Ensure correct handling of minus sign
         val sanitizedOp = if (op == "−") "-" else op
 
         if (expression.isEmpty() && sanitizedOp == "-") {

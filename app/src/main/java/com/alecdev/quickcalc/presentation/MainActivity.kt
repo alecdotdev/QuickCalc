@@ -36,50 +36,52 @@ fun CalculatorApp() {
     val scrollState = rememberScrollState()
 
     QuickCalcTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxSize().padding(top = 18.dp,bottom=0.dp, start = 12.dp, end = 12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Row(
+            Column(
                 modifier = Modifier
-                    .horizontalScroll(scrollState)
-                    .padding(top = 2.dp, bottom = 0.dp, start = 24.dp, end = 24.dp).height(32.dp)
+                    .fillMaxSize()
+                    .padding(top = 14.dp, bottom = 0.dp, start = 12.dp, end = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
             ) {
-                Text(
-                    text = calculatorState.display,
-                    style = MaterialTheme.typography.display3
-                )
-            }
-            LaunchedEffect(key1 = calculatorState.display) {
-                scrollState.animateScrollTo(scrollState.maxValue)
-            }
-            CalculatorButtons(onButtonClick = { input ->
-                when (input) {
-                    "C" -> calculatorState.onClear()
-                    "⌫" -> calculatorState.onDelete()
-                    "＝" -> calculatorState.onCalculate()
-                    "+", "−", "×", "÷" -> calculatorState.onOperation(input)
-                    else -> calculatorState.onInput(input)
+                Row(
+                    modifier = Modifier
+                        .horizontalScroll(scrollState)
+                        .padding(top = 0.dp, bottom = 0.dp)
+                ) {
+                    Text(
+                        text = calculatorState.display,
+                        style = MaterialTheme.typography.display3
+                    )
                 }
-            })
+                LaunchedEffect(key1 = calculatorState.display) {
+                    scrollState.animateScrollTo(scrollState.maxValue)
+                }
+                CalculatorButtons(onButtonClick = { input ->
+                    when (input) {
+                        "C" -> calculatorState.onClear()
+                        "⌫" -> calculatorState.onDelete()
+                        "＝" -> calculatorState.onCalculate()
+                        "+", "−", "×", "÷" -> calculatorState.onOperation(input)
+                        else -> calculatorState.onInput(input)
+                    }
+                })
+
+            }
         }
-    }
+
 }
 
 @Composable
 fun CalculatorButtons(onButtonClick: (String) -> Unit) {
-    val row1 = listOf("7", "8",  "9","÷" ,"C" )
-    val row2 = listOf("4", "5",  "6","×","⌫")
-    val row3 = listOf("1", "2",  "3", "−", "＝")
-    val row4 = listOf("", "0", ".", "+",   "")
+    val row1 = listOf("7", "8", "9", "÷", "C")
+    val row2 = listOf("4", "5", "6", "×", "⌫")
+    val row3 = listOf("1", "2", "3", "−", "＝")
+    val row4 = listOf("", "0", ".", "+", "")
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 0.dp, bottom = 0.dp)
-        ,
+            .padding(top = 0.dp, bottom = 0.dp),
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
         ButtonRow(row1, onButtonClick)
@@ -96,16 +98,23 @@ fun CalculatorButtons(onButtonClick: (String) -> Unit) {
 }
 
 @Composable
-fun ButtonRow(buttons: List<String>, onButtonClick: (String) -> Unit, isBottomRow: Boolean = false) {
-    val numberColor = Color(0xFF2d2d2d)
-    val operatorColor = Color(0xFF3b3c4e)
-    val equalsColor = Color(0xFF242545)
-    val clearColor = Color(0xFF5F3C52)
-    val whiteColor = Color(0xFFFFFFFF)
+fun ButtonRow(
+    buttons: List<String>,
+    onButtonClick: (String) -> Unit,
+    isBottomRow: Boolean = false
+) {
+    val numberColor = MaterialTheme.colors.surface
+    val operatorColor = MaterialTheme.colors.primary
+    val equalsColor = MaterialTheme.colors.primaryVariant
+    val clearColor = MaterialTheme.colors.error
+    val textColor = MaterialTheme.colors.onSurface
 
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier.fillMaxWidth().padding(0.dp).height(0.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 2.dp, bottom = 2.dp)
+            .height(0.dp)
     ) {
         for ((index, button) in buttons.withIndex()) {
             val backgroundColor = when (button) {
@@ -116,7 +125,8 @@ fun ButtonRow(buttons: List<String>, onButtonClick: (String) -> Unit, isBottomRo
                 else -> numberColor
             }
 
-            val textColor = if (button in listOf("+", "−", "×", "÷", "＝", "C", "⌫")) whiteColor else Color.White
+            val textColor =
+                if (button in listOf("+", "−", "×", "÷", "＝", "C", "⌫")) textColor else Color.White
 
             val alpha = if (isBottomRow && (index == 0 || index == buttons.lastIndex)) 0f else 1f
 
@@ -124,10 +134,11 @@ fun ButtonRow(buttons: List<String>, onButtonClick: (String) -> Unit, isBottomRo
                 onClick = { if (alpha > 0) onButtonClick(button) },
                 modifier = Modifier
                     .padding(0.5.dp)
-                    .aspectRatio(1.25f)
+                    .aspectRatio(1.2f)
                     .weight(1f)
                     .alpha(alpha),
-                colors = ButtonDefaults.buttonColors(backgroundColor = backgroundColor.copy(alpha = alpha),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = backgroundColor.copy(alpha = alpha),
                     contentColor = textColor
                 )
             ) {
@@ -138,6 +149,7 @@ fun ButtonRow(buttons: List<String>, onButtonClick: (String) -> Unit, isBottomRo
         }
     }
 }
+
 
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
 @Composable
