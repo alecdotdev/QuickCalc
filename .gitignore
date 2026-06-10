@@ -17,3 +17,19 @@ local.properties
 .idea/vcs.xml
 .idea/deploymentTargetDropDown.xml
 .idea/kotlinc.xml
+
+# user-specific settings
+.idea/AndroidProjectSystem.xml
+.idea/copilot.data.migration.agent.xml
+.idea/copilot.data.migration.edit.xml
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+.idea/migrations.xml
+.idea/runConfigurations.xml
+
+# screenshots
+
+# build logs and outputs
+build.log
+build_output.txt
+/app/release/

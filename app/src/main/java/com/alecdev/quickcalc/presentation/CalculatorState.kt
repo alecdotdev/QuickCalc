@@ -1,4 +1,5 @@
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import java.text.DecimalFormat
@@ -6,6 +7,12 @@ import java.text.DecimalFormat
 class CalculatorState {
     private var expression by mutableStateOf("")
     var display by mutableStateOf("")
+    val history = mutableStateListOf<String>()
+
+    fun updateExpression(expr: String) {
+        expression = expr
+        updateDisplay()
+    }
 
     private val df = DecimalFormat("#.########")
 
@@ -42,11 +49,14 @@ class CalculatorState {
     fun onCalculate() {
         try {
             val result = evaluate(expression)
-            display = df.format(result)
+            val output = df.format(result)
+            if (expression.isNotEmpty() && expression != output) {
+                history.add("$expression|$output")
+            }
+            display = output
             expression = display
         } catch (e: Exception) {
-            display = "Error"
-            expression = ""
+            // do nothing on error
         }
     }
 

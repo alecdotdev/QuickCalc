@@ -12,6 +12,7 @@
         <service
             android:name=".complication.MainComplicationService"
             android:exported="true"
+            android:icon="@drawable/ic_launcher_foreground"
             android:label="@string/complication_label"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
@@ -20,7 +21,7 @@
 
             <meta-data
                 android:name="android.support.wearable.complications.SUPPORTED_TYPES"
-                android:value="SHORT_TEXT" />
+                android:value="MONOCHROMATIC_IMAGE,SMALL_IMAGE" />
             <meta-data
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
                 android:value="0" />

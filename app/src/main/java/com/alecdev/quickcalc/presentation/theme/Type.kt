@@ -1,28 +1,40 @@
 package com.alecdev.quickcalc.presentation.theme
 
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Typography
+import com.alecdev.quickcalc.R
 
-// Set of Material typography styles to start with
+@OptIn(ExperimentalTextApi::class)
+val RoundedFontFamily = FontFamily(
+    Font(
+        resId = R.font.google_sans_flex,
+        variationSettings = FontVariation.Settings(
+            FontVariation.Setting("ROND", 100f),
+            FontVariation.Setting("opsz", 8f)
+        )
+    )
+)
+
 val Typography = Typography(
     body1 = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = RoundedFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp
-    )
-    /* Other default text styles to override
+    ),
     button = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.W500,
+        fontFamily = RoundedFontFamily,
+        fontWeight = FontWeight.Medium,
         fontSize = 14.sp
     ),
-    caption = TextStyle(
-        fontFamily = FontFamily.Default,
+    display3 = TextStyle(
+        fontFamily = RoundedFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 12.sp
+        fontSize = 24.sp
     )
-    */
 )
