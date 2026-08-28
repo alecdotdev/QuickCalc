@@ -12,6 +12,7 @@ import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.ResourceBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TileService
+import com.alecdev.quickcalc.presentation.CalculatorState
 import com.google.common.util.concurrent.ListenableFuture
 
 private const val RESOURCES_VERSION = "0"
@@ -73,27 +74,56 @@ private fun handleTileInput(context: Context, clickableId: String): String {
         }
         "⌫" -> {
             if (expression.isNotEmpty()) {
-                expression = expression.dropLast(1)
+                expression = if (expression.endsWith("√(")) {
+                    expression.dropLast(2)
+                } else {
+                    expression.dropLast(1)
+                }
             }
         }
         "＝" -> {
             if (expression.isNotEmpty()) {
                 try {
-                    val sanitized = expression.replace('÷', '/').replace('×', '*').replace('−', '-')
-                    val result = net.objecthunter.exp4j.ExpressionBuilder(sanitized).build().evaluate()
-                    val df = java.text.DecimalFormat("#.########")
-                    expression = df.format(result)
+                    val result = CalculatorState.evaluate(expression)
+                    expression = CalculatorState.formatResult(result)
                 } catch (e: Exception) {
                     // do nothing on error
                 }
             }
         }
         "+", "−", "×", "÷" -> {
-            val isLastCharOp = expression.isNotEmpty() && expression.last() in listOf('+', '−', '×', '÷')
-            if (expression.isNotEmpty() && !isLastCharOp) {
+            val isLastCharOp = expression.isNotEmpty() && expression.last() in listOf('+', '-', '−', '×', '÷', '^')
+            val sanitizedOp = if (input == "−") "-" else input
+            if (expression.isEmpty()) {
+                if (sanitizedOp == "-") {
+                    expression += sanitizedOp
+                }
+            } else if (isLastCharOp) {
+                if (sanitizedOp == "-" && expression.last() != '-') {
+                    expression += sanitizedOp
+                } else {
+                    expression = expression.dropLast(1) + input
+                }
+            } else {
                 expression += input
-            } else if (expression.isEmpty() && input == "−") {
-                expression += input
+            }
+        }
+        "." -> {
+            var hasDot = false
+            var i = expression.length - 1
+            while (i >= 0 && (expression[i].isDigit() || expression[i] == '.')) {
+                if (expression[i] == '.') {
+                    hasDot = true
+                    break
+                }
+                i--
+            }
+            if (!hasDot) {
+                if (expression.isEmpty() || !expression.last().isDigit()) {
+                    expression += "0."
+                } else {
+                    expression += "."
+                }
             }
         }
         else -> {
