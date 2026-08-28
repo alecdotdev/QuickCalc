@@ -1,19 +1,17 @@
 package com.alecdev.quickcalc.presentation
 
-import CalculatorState
 import android.os.Build
 import android.os.Bundle
 import kotlinx.coroutines.launch
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -39,10 +37,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -120,6 +118,10 @@ fun CalculatorApp(calculatorState: CalculatorState = remember { CalculatorState(
     val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberScalingLazyListState()
 
+    BackHandler(enabled = !keysVisible) {
+        keysVisible = true
+    }
+
     val transitionProgress by animateFloatAsState(
         targetValue = if (keysVisible) 0f else 1f,
         animationSpec = tween(durationMillis = 300)
@@ -159,6 +161,27 @@ fun CalculatorApp(calculatorState: CalculatorState = remember { CalculatorState(
                             true
                         }
                     }
+                }
+                .pointerInput(keysVisible) {
+                    var totalDragY = 0f
+                    detectVerticalDragGestures(
+                        onDragStart = { totalDragY = 0f },
+                        onDragEnd = {
+                            if (keysVisible && totalDragY > 30f) {
+                                keysVisible = false
+                            } else if (!keysVisible && totalDragY < -30f) {
+                                val isAtTop = calculatorState.history.isEmpty() ||
+                                        lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index == 0
+                                if (isAtTop) {
+                                    keysVisible = true
+                                }
+                            }
+                        },
+                        onDragCancel = { totalDragY = 0f },
+                        onVerticalDrag = { _, dragAmount ->
+                            totalDragY += dragAmount
+                        }
+                    )
                 }
                 .focusRequester(focusRequester)
                 .focusable()
@@ -224,6 +247,13 @@ fun CalculatorApp(calculatorState: CalculatorState = remember { CalculatorState(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .clickable {
+                                            val valueToLoad = res.ifEmpty { expr }
+                                            if (valueToLoad.isNotEmpty()) {
+                                                calculatorState.updateExpression(valueToLoad)
+                                                keysVisible = true
+                                            }
+                                        }
                                         .padding(horizontal = 16.dp, vertical = 2.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
@@ -287,7 +317,7 @@ fun CalculatorApp(calculatorState: CalculatorState = remember { CalculatorState(
                         "⌫" -> calculatorState.onDelete()
                         "＝" -> calculatorState.onCalculate()
                         "+", "−", "×", "÷" -> calculatorState.onOperation(input)
-                        "1/x" -> calculatorState.onInput("1/")
+                        "1/x" -> calculatorState.onReciprocal()
                         "√" -> calculatorState.onInput("√(")
                         "^" -> calculatorState.onInput("^")
                         "x²" -> calculatorState.onInput("^2")
@@ -297,11 +327,11 @@ fun CalculatorApp(calculatorState: CalculatorState = remember { CalculatorState(
                         "(" -> calculatorState.onInput("(")
                         ")" -> calculatorState.onInput(")")
                         "←" -> {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(0)
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(0)
+                            }
                         }
-                    }
-                    else -> calculatorState.onInput(input)
+                        else -> calculatorState.onInput(input)
                     }
                 }
 
@@ -316,6 +346,7 @@ fun CalculatorApp(calculatorState: CalculatorState = remember { CalculatorState(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 30.dp)
+                            .clickable { keysVisible = false }
                             .graphicsLayer {
                                 alpha = 1f - transitionProgress
                                 translationY = -transitionProgress * 100.dp.toPx()
@@ -383,20 +414,25 @@ fun CalculatorApp(calculatorState: CalculatorState = remember { CalculatorState(
                             )
                         }
 
-                        val pageIndicatorState = remember(pagerState.currentPage, pagerState.pageCount) {
-                            object : PageIndicatorState {
-                                override val pageCount: Int get() = pagerState.pageCount
-                                override val pageOffset: Float get() = 0f
-                                override val selectedPage: Int get() = pagerState.currentPage
-                            }
-                        }
-
-                        HorizontalPageIndicator(
-                            pageIndicatorState = pageIndicatorState,
+                        Row(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
-                                .padding(bottom = 2.dp)
-                        )
+                                .padding(bottom = 3.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            repeat(2) { index ->
+                                val isSelected = pagerState.currentPage == index
+                                Box(
+                                    modifier = Modifier
+                                        .size(if (isSelected) 4.5.dp else 3.5.dp)
+                                        .background(
+                                            color = if (isSelected) Color.White.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.12f),
+                                            shape = CircleShape
+                                        )
+                                )
+                            }
+                        }
                     }
                 }
             }
