@@ -51,6 +51,8 @@ import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.HorizontalPageIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PageIndicatorState
+import androidx.wear.compose.material.PositionIndicator
+import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.focus.focusProperties
@@ -137,9 +139,19 @@ fun CalculatorApp(calculatorState: CalculatorState = remember { CalculatorState(
     }
 
     QuickCalcTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
+        Scaffold(
+            positionIndicator = {
+                if (transitionProgress > 0f && calculatorState.history.isNotEmpty()) {
+                    PositionIndicator(
+                        scalingLazyListState = lazyListState,
+                        modifier = Modifier.graphicsLayer { alpha = transitionProgress }
+                    )
+                }
+            }
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
                 .onRotaryScrollEvent { event ->
                     if (keysVisible) {
                         if (event.verticalScrollPixels > 0f) {
@@ -431,6 +443,7 @@ fun CalculatorApp(calculatorState: CalculatorState = remember { CalculatorState(
                                             shape = CircleShape
                                         )
                                 )
+                                }
                             }
                         }
                     }

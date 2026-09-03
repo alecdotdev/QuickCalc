@@ -12,8 +12,8 @@ android {
         applicationId = "com.alecdev.quickcalc"
         minSdk = 30
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.5"
+        versionCode = 8
+        versionName = "1.5.1"
         vectorDrawables {
             useSupportLibrary = true
         }
